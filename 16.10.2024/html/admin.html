@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Адміністратор</title>
+   <style>
+      body {
+         font-family: 'Arial', sans-serif;
+         background-color: #f4f4f9;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         height: 100vh;
+         margin: 0;
+         flex-direction: column;
+      }
+
+      .admin-container {
+         background-color: white;
+         padding: 40px;
+         border-radius: 10px;
+         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+         width: 100%;
+         max-width: 600px;
+         max-height: 800px;
+         text-align: center;
+         overflow-y: auto;
+      }
+
+      h1 {
+         color: #333;
+         margin-bottom: 20px;
+      }
+
+      table {
+         width: 100%;
+         border-collapse: collapse;
+         margin-top: 20px;
+      }
+
+      th,
+      td {
+         border: 1px solid #ccc;
+         padding: 10px;
+         text-align: left;
+      }
+
+      th {
+         background-color: #f2f2f2;
+      }
+
+
+      .modal {
+         display: none;
+         position: fixed;
+         z-index: 1000;
+         left: 0;
+         top: 0;
+         width: 100%;
+         height: 100%;
+         overflow: auto;
+         background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-content {
+         background-color: #fefefe;
+         margin: 15% auto;
+         padding: 20px;
+         border: 1px solid #ccc;
+         border-radius: 8px;
+         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+         width: 90%;
+         max-width: 500px;
+         animation: fadeIn 0.3s;
+      }
+
+      .close {
+         color: #aaa;
+         float: right;
+         font-size: 28px;
+         font-weight: bold;
+         cursor: pointer;
+      }
+
+      .close:hover,
+      .close:focus {
+         color: #000;
+         text-decoration: none;
+      }
+
+      h2 {
+         color: #333;
+         margin: 0 0 20px 0;
+      }
+
+      label {
+         display: block;
+         margin: 10px 0 5px;
+         font-weight: bold;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+         width: 100%;
+         padding: 10px;
+         border: 1px solid #ccc;
+         border-radius: 5px;
+         box-sizing: border-box;
+         margin-bottom: 15px;
+         transition: border-color 0.3s;
+      }
+
+      input[type="text"]:focus,
+      input[type="password"]:focus {
+         border-color: #007bff;
+         outline: none;
+      }
+
+      button[type="submit"] {
+         background-color: #007bff;
+         color: white;
+         border: none;
+         padding: 10px 15px;
+         border-radius: 5px;
+         cursor: pointer;
+         transition: background-color 0.3s;
+      }
+
+      button[type="submit"]:hover {
+         background-color: #0056b3;
+      }
+
+      @keyframes fadeIn {
+         from {
+            opacity: 0;
+         }
+
+         to {
+            opacity: 1;
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <div class="admin-container">
+      <h1>Адміністративна панель</h1>
+      <table id="userTable">
+         <thead>
+            <tr>
+               <th>ID</th>
+               <th>Ім'я</th>
+               <th>Логін</th>
+               <th>Пароль</th>
+            </tr>
+         </thead>
+         <tbody>
+            {{userRows}}
+         </tbody>
+      </table>
+   </div>
+   <div id="myModal" class="modal">
+      <div class="modal-content">
+         <span class="close">&times;</span>
+         <h2>Редагувати користувача</h2>
+         <form id="editForm">
+            <label for="name">Ім'я:</label>
+            <input type="text" id="name" required>
+            <label for="login">Логін:</label>
+            <input type="text" id="login" required>
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" required>
+            <button type="submit">Зберегти</button>
+         </form>
+      </div>
+   </div>
+   <script>
+      let currentUserId;
+
+      function editUser(userId, currentName, currentLogin, currentPassword) {
+         currentUserId = userId;
+
+         document.getElementById("name").value = currentName;
+         document.getElementById("login").value = currentLogin;
+         document.getElementById("password").value = currentPassword;
+
+         document.getElementById("myModal").style.display = "block";
+      }
+
+      document.querySelector(".close").onclick = function () {
+         document.getElementById("myModal").style.display = "none";
+      }
+
+      window.onclick = function (event) {
+         if (event.target === document.getElementById("myModal")) {
+            document.getElementById("myModal").style.display = "none";
+         }
+      }
+
+      document.getElementById("editForm").onsubmit = function (e) {
+         e.preventDefault();
+
+         const newName = document.getElementById("name").value;
+         const newLogin = document.getElementById("login").value;
+         const newPassword = document.getElementById("password").value;
+
+         if (newName && newLogin && newPassword) {
+            fetch(`/edit/${currentUserId}`, {
+               method: 'PUT',
+               headers: {
+                  'Content-Type': 'application/json'
+               },
+               body: JSON.stringify({
+                  name: newName,
+                  login: newLogin,
+                  password: newPassword
+               })
+            })
+               .then(response => {
+                  if (response.ok) {
+                     alert("Користувача успішно відредаговано.");
+                     location.reload();
+                  } else {
+                     alert("Помилка при редагуванні користувача.");
+                  }
+               });
+         } else {
+            alert("Будь ласка, заповніть усі поля.");
+         }
+      }
+
+   </script>
+</body>
+
+</html>
